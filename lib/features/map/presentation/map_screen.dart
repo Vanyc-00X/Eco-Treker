@@ -474,6 +474,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                             ),
                             TextButton.icon(
                               onPressed: () async {
+                                final messenger = ScaffoldMessenger.of(context);
                                 final profile = await ref
                                     .read(currentProfileProvider.future);
                                 if (profile == null) return;
@@ -483,7 +484,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                   favorite: true,
                                 );
                                 if (!mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
+                                messenger.showSnackBar(
                                   const SnackBar(
                                     content: Text(AppRu.favorites),
                                   ),

@@ -237,7 +237,7 @@ class _ChallengesTabState extends ConsumerState<_ChallengesTab> {
               TextField(controller: desc, decoration: const InputDecoration(labelText: 'Описание')),
               TextField(controller: points, decoration: const InputDecoration(labelText: 'Баллы')),
               DropdownButtonFormField<String>(
-                value: type.value,
+                initialValue: type.value,
                 items: const [
                   DropdownMenuItem(value: 'individual', child: Text('individual')),
                   DropdownMenuItem(value: 'team', child: Text('team')),

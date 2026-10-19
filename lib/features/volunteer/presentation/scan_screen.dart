@@ -85,7 +85,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
             bonusMultiplier: mult,
           );
       final text =
-          'Квитанция Eco-Tracker\n${student.fullName}\n${cat.nameRu}: ${w} кг\n'
+          'Квитанция Eco-Tracker\n${student.fullName}\n${cat.nameRu}: $w кг\n'
           'Баллы: ${sub.pointsAwarded > 0 ? sub.pointsAwarded : preview.points}\n'
           'CO₂: ${sub.co2SavedKg > 0 ? sub.co2SavedKg : preview.co2Kg} кг\n'
           'Множитель: ×$mult';

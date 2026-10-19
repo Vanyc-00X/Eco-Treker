@@ -176,26 +176,27 @@ class LeaderboardScreen extends ConsumerWidget {
                     break;
                   }
                 }
+                final shareEntry = myEntry;
                 return Column(
                   children: [
                     if (top.isNotEmpty) _Podium(top: top, fmt: fmt),
-                    if (myEntry != null)
+                    if (shareEntry != null)
                       TextButton.icon(
                         onPressed: () async {
                           await saveRankSnapshot(
                             ref.read(sharedPreferencesProvider),
-                            myEntry!.rank,
+                            shareEntry.rank,
                           );
                           await SharePlus.instance.share(
                             ShareParams(
                               text:
-                                  'Моё место в Eco-Tracker: #${myEntry.rank} '
-                                  '(${myEntry.greenPoints} б.)',
+                                  'Моё место в Eco-Tracker: #${shareEntry.rank} '
+                                  '(${shareEntry.greenPoints} б.)',
                             ),
                           );
                         },
                         icon: const Icon(Icons.share),
-                        label: Text('Поделиться: #${myEntry.rank}'),
+                        label: Text('Поделиться: #${shareEntry.rank}'),
                       ),
                     const SizedBox(height: 16),
                     ...rest.map((entry) {

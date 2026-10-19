@@ -31,7 +31,7 @@ Future<void> initSupabase() async {
     );
   }
 
-  await Supabase.initialize(url: url, anonKey: key);
+  await Supabase.initialize(url: url, publishableKey: key);
 }
 
 SupabaseClient get supabase => Supabase.instance.client;

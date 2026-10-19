@@ -497,7 +497,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           child: Text(
             _otpLimiter.canResend
                 ? AppRu.sendOtp
-                : '${AppRu.otpResendIn} ${remaining}с',
+                : '${AppRu.otpResendIn} $remaining сек',
           ),
         ),
         const SizedBox(height: 8),
