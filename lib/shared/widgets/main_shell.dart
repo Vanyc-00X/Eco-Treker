@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/l10n/app_ru.dart';
 import '../../core/theme/app_colors.dart';
+import '../../features/auth/providers/auth_providers.dart';
 import 'email_confirm_banner.dart';
 
-class MainShell extends StatelessWidget {
+class MainShell extends ConsumerWidget {
   const MainShell({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
@@ -18,7 +20,19 @@ class MainShell extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profile = ref.watch(currentProfileProvider).asData?.value;
+    final isStaff = profile?.isStaff == true;
+
+    // Если студент оказался на вкладке «Работа» — вернуть на главную.
+    if (!isStaff && navigationShell.currentIndex == 5) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (navigationShell.currentIndex == 5) {
+          navigationShell.goBranch(0);
+        }
+      });
+    }
+
     return Scaffold(
       body: EmailConfirmBannerHost(child: navigationShell),
       bottomNavigationBar: Container(
@@ -35,7 +49,7 @@ class MainShell extends StatelessWidget {
         child: SafeArea(
           top: false,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 6),
             child: Row(
               children: [
                 _NavItem(
@@ -73,6 +87,15 @@ class MainShell extends StatelessWidget {
                   label: AppRu.navMap,
                   onTap: _onTap,
                 ),
+                if (isStaff)
+                  _NavItem(
+                    index: 5,
+                    current: navigationShell.currentIndex,
+                    icon: Icons.work_outline_rounded,
+                    label: AppRu.navWork,
+                    onTap: _onTap,
+                    highlight: true,
+                  ),
               ],
             ),
           ),
@@ -89,6 +112,7 @@ class _NavItem extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onTap,
+    this.highlight = false,
   });
 
   final int index;
@@ -96,10 +120,12 @@ class _NavItem extends StatelessWidget {
   final IconData icon;
   final String label;
   final ValueChanged<int> onTap;
+  final bool highlight;
 
   @override
   Widget build(BuildContext context) {
     final active = index == current;
+    final accent = highlight ? AppColors.accentDeep : AppColors.primary;
     return Expanded(
       child: Semantics(
         button: true,
@@ -118,17 +144,19 @@ class _NavItem extends StatelessWidget {
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
+                    horizontal: 10,
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: active ? AppColors.mint : Colors.transparent,
+                    color: active
+                        ? (highlight ? AppColors.mint : AppColors.mint)
+                        : Colors.transparent,
                     borderRadius: BorderRadius.circular(18),
                   ),
                   child: Icon(
                     icon,
                     size: 22,
-                    color: active ? AppColors.primary : AppColors.muted,
+                    color: active ? accent : AppColors.muted,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -139,7 +167,7 @@ class _NavItem extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-                    color: active ? AppColors.primary : AppColors.muted,
+                    color: active ? accent : AppColors.muted,
                   ),
                 ),
                 const SizedBox(height: 3),
@@ -148,7 +176,7 @@ class _NavItem extends StatelessWidget {
                   width: active ? 18 : 0,
                   height: 3,
                   decoration: BoxDecoration(
-                    color: AppColors.accent,
+                    color: highlight ? AppColors.accentDeep : AppColors.accent,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),

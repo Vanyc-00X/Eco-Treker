@@ -5,7 +5,9 @@ import '../../../core/l10n/app_ru.dart';
 import 'scan_screen.dart';
 
 class ModerateProofsScreen extends ConsumerStatefulWidget {
-  const ModerateProofsScreen({super.key});
+  const ModerateProofsScreen({super.key, this.embedded = false});
+
+  final bool embedded;
 
   @override
   ConsumerState<ModerateProofsScreen> createState() =>
@@ -28,15 +30,23 @@ class _ModerateProofsScreenState extends ConsumerState<ModerateProofsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Пруфы челленджей'),
-        actions: [
-          IconButton(
-            onPressed: () => setState(_reload),
-            icon: const Icon(Icons.refresh),
-          ),
-        ],
-      ),
+      appBar: widget.embedded
+          ? null
+          : AppBar(
+              title: const Text('Пруфы челленджей'),
+              actions: [
+                IconButton(
+                  onPressed: () => setState(_reload),
+                  icon: const Icon(Icons.refresh),
+                ),
+              ],
+            ),
+      floatingActionButton: widget.embedded
+          ? FloatingActionButton.small(
+              onPressed: () => setState(_reload),
+              child: const Icon(Icons.refresh),
+            )
+          : null,
       body: FutureBuilder(
         future: _future,
         builder: (context, snap) {

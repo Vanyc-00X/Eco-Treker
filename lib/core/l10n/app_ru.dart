@@ -7,6 +7,15 @@ abstract final class AppRu {
   static const navChallenges = 'Челленджи';
   static const navLeaderboard = 'Рейтинг';
   static const navMap = 'Карта';
+  static const navWork = 'Работа';
+  static const staffWorkSubtitle =
+      'Подтверждайте сдачи, начисляйте баллы и ведите очередь';
+  static const staffAccessDenied =
+      'Эта вкладка доступна только волонтёрам и администраторам.';
+  static const scanQrShort = 'Скан';
+  static const moderateClaimsShort = 'Заявки';
+  static const moderateProofs = 'Пруфы';
+  static const adminHubShort = 'Админ';
 
   static const retry = 'Повторить';
   static const profileNotFound = 'Профиль не найден';

@@ -15,7 +15,10 @@ import '../data/volunteer_repository.dart';
 final volunteerRepositoryProvider = Provider((_) => VolunteerRepository());
 
 class ScanScreen extends ConsumerStatefulWidget {
-  const ScanScreen({super.key});
+  const ScanScreen({super.key, this.embedded = false});
+
+  /// Без AppBar — когда экран внутри вкладки «Работа».
+  final bool embedded;
 
   @override
   ConsumerState<ScanScreen> createState() => _ScanScreenState();
@@ -102,7 +105,9 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
     final categories = ref.watch(wasteCategoriesProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text(AppRu.scanQr)),
+      appBar: widget.embedded
+          ? null
+          : AppBar(title: const Text(AppRu.scanQr)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

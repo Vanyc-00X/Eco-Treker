@@ -6,7 +6,9 @@ import '../../../core/theme/app_colors.dart';
 import 'scan_screen.dart';
 
 class ModerateClaimsScreen extends ConsumerStatefulWidget {
-  const ModerateClaimsScreen({super.key});
+  const ModerateClaimsScreen({super.key, this.embedded = false});
+
+  final bool embedded;
 
   @override
   ConsumerState<ModerateClaimsScreen> createState() =>
@@ -60,15 +62,23 @@ class _ModerateClaimsScreenState extends ConsumerState<ModerateClaimsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(AppRu.moderateClaims),
-        actions: [
-          IconButton(
-            onPressed: () => setState(_reload),
-            icon: const Icon(Icons.refresh),
-          ),
-        ],
-      ),
+      appBar: widget.embedded
+          ? null
+          : AppBar(
+              title: const Text(AppRu.moderateClaims),
+              actions: [
+                IconButton(
+                  onPressed: () => setState(_reload),
+                  icon: const Icon(Icons.refresh),
+                ),
+              ],
+            ),
+      floatingActionButton: widget.embedded
+          ? FloatingActionButton.small(
+              onPressed: () => setState(_reload),
+              child: const Icon(Icons.refresh),
+            )
+          : null,
       body: FutureBuilder(
         future: _future,
         builder: (context, snap) {

@@ -8,15 +8,8 @@ import '../data/admin_repository.dart';
 
 final adminRepositoryProvider = Provider((_) => AdminRepository());
 
-class AdminShell extends ConsumerStatefulWidget {
+class AdminShell extends StatelessWidget {
   const AdminShell({super.key});
-
-  @override
-  ConsumerState<AdminShell> createState() => _AdminShellState();
-}
-
-class _AdminShellState extends ConsumerState<AdminShell> {
-  int _tab = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -28,42 +21,65 @@ class _AdminShellState extends ConsumerState<AdminShell> {
           onPressed: () => context.go('/dashboard'),
         ),
       ),
-      body: IndexedStack(
-        index: _tab,
-        children: const [
-          _AnalyticsTab(),
-          _UsersTab(),
-          _ChallengesTab(),
-          _PointsTab(),
-          _OpsTab(),
-        ],
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _tab,
-        onDestinationSelected: (i) => setState(() => _tab = i),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.analytics_outlined),
-            label: 'Аналитика',
+      body: const AdminPanelBody(),
+    );
+  }
+}
+
+/// Контент админ-панели (вкладки) — для `/admin` и вкладки «Работа».
+class AdminPanelBody extends ConsumerStatefulWidget {
+  const AdminPanelBody({super.key});
+
+  @override
+  ConsumerState<AdminPanelBody> createState() => _AdminPanelBodyState();
+}
+
+class _AdminPanelBodyState extends ConsumerState<AdminPanelBody> {
+  int _tab = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Expanded(
+          child: IndexedStack(
+            index: _tab,
+            children: const [
+              _AnalyticsTab(),
+              _UsersTab(),
+              _ChallengesTab(),
+              _PointsTab(),
+              _OpsTab(),
+            ],
           ),
-          NavigationDestination(
-            icon: Icon(Icons.people_outline),
-            label: 'Юзеры',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.emoji_events_outlined),
-            label: 'Челленджи',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.place_outlined),
-            label: 'Пункты',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.inbox_outlined),
-            label: 'Очередь',
-          ),
-        ],
-      ),
+        ),
+        NavigationBar(
+          selectedIndex: _tab,
+          onDestinationSelected: (i) => setState(() => _tab = i),
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.analytics_outlined),
+              label: 'Аналитика',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.people_outline),
+              label: 'Юзеры',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.emoji_events_outlined),
+              label: 'Челленджи',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.place_outlined),
+              label: 'Пункты',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.inbox_outlined),
+              label: 'Очередь',
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

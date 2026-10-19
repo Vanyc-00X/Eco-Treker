@@ -16,6 +16,7 @@ import '../../features/recycle/presentation/recycle_screen.dart';
 import '../../features/recycle/presentation/upload_claim_screen.dart';
 import '../../features/settings/presentation/legal_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
+import '../../features/staff/presentation/staff_work_screen.dart';
 import '../../features/volunteer/presentation/moderate_claims_screen.dart';
 import '../../features/volunteer/presentation/moderate_proofs_screen.dart';
 import '../../features/volunteer/presentation/scan_screen.dart';
@@ -149,6 +150,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/map',
                 builder: (context, state) => const MapScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/work',
+                builder: (context, state) => const StaffWorkScreen(),
               ),
             ],
           ),
