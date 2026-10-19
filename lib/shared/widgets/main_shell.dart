@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/l10n/app_ru.dart';
 import '../../core/theme/app_colors.dart';
+import 'email_confirm_banner.dart';
 
 class MainShell extends StatelessWidget {
   const MainShell({super.key, required this.navigationShell});
@@ -18,7 +20,7 @@ class MainShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: navigationShell,
+      body: EmailConfirmBannerHost(child: navigationShell),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -40,35 +42,35 @@ class MainShell extends StatelessWidget {
                   index: 0,
                   current: navigationShell.currentIndex,
                   icon: Icons.home_rounded,
-                  label: 'Dashboard',
+                  label: AppRu.navDashboard,
                   onTap: _onTap,
                 ),
                 _NavItem(
                   index: 1,
                   current: navigationShell.currentIndex,
                   icon: Icons.delete_outline_rounded,
-                  label: 'Recycle',
+                  label: AppRu.navRecycle,
                   onTap: _onTap,
                 ),
                 _NavItem(
                   index: 2,
                   current: navigationShell.currentIndex,
                   icon: Icons.emoji_events_outlined,
-                  label: 'Challenges',
+                  label: AppRu.navChallenges,
                   onTap: _onTap,
                 ),
                 _NavItem(
                   index: 3,
                   current: navigationShell.currentIndex,
                   icon: Icons.radar_rounded,
-                  label: 'Leaderboard',
+                  label: AppRu.navLeaderboard,
                   onTap: _onTap,
                 ),
                 _NavItem(
                   index: 4,
                   current: navigationShell.currentIndex,
                   icon: Icons.location_on_outlined,
-                  label: 'Map',
+                  label: AppRu.navMap,
                   onTap: _onTap,
                 ),
               ],
@@ -99,39 +101,59 @@ class _NavItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final active = index == current;
     return Expanded(
-      child: InkWell(
+      child: Semantics(
+        button: true,
+        selected: active,
+        label: active ? '$label, ${AppRu.navSelected}' : label,
+        excludeSemantics: true,
         onTap: () => onTap(index),
-        borderRadius: BorderRadius.circular(20),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: active ? AppColors.mint : Colors.transparent,
-                  borderRadius: BorderRadius.circular(18),
+        child: InkWell(
+          onTap: () => onTap(index),
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: active ? AppColors.mint : Colors.transparent,
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Icon(
+                    icon,
+                    size: 22,
+                    color: active ? AppColors.primary : AppColors.muted,
+                  ),
                 ),
-                child: Icon(
-                  icon,
-                  size: 22,
-                  color: active ? AppColors.primary : AppColors.muted,
+                const SizedBox(height: 2),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                    color: active ? AppColors.primary : AppColors.muted,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-                  color: active ? AppColors.primary : AppColors.muted,
+                const SizedBox(height: 3),
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  width: active ? 18 : 0,
+                  height: 3,
+                  decoration: BoxDecoration(
+                    color: AppColors.accent,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

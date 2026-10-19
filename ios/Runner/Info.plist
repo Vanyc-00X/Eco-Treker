@@ -8,6 +8,12 @@
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
 	<string>Campus Eco Tracker</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Камера нужна для фото заявки на сдачу отходов.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Галерея нужна, чтобы прикрепить фото сдачи к заявке.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Микрофон не используется приложением.</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>

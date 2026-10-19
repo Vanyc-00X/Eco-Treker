@@ -24,13 +24,17 @@ class Challenge {
   String get typeLabel {
     switch (challengeType) {
       case 'team':
-        return 'Faculty Team';
+        return 'Команда факультета';
       case 'daily':
-        return 'Daily';
+        return 'Ежедневный';
       case 'weekly':
-        return 'Weekly';
+        return 'Еженедельный';
+      case 'seasonal':
+        return 'Сезонный';
+      case 'special':
+        return 'Специальный';
       default:
-        return 'Individual';
+        return 'Индивидуальный';
     }
   }
 
@@ -41,9 +45,9 @@ class Challenge {
 
   String get timeLeftLabel {
     final d = timeLeft;
-    if (d.inDays > 0) return '${d.inDays}d left';
-    if (d.inHours > 0) return '${d.inHours}h left';
-    return '${d.inMinutes}m left';
+    if (d.inDays > 0) return '${d.inDays} дн. осталось';
+    if (d.inHours > 0) return '${d.inHours} ч осталось';
+    return '${d.inMinutes} мин осталось';
   }
 
   factory Challenge.fromJson(Map<String, dynamic> json) {
@@ -121,18 +125,24 @@ class Achievement {
       return Achievement(
         id: nested['id'] as String,
         code: nested['code'] as String? ?? '',
-        title: nested['title'] as String? ?? 'Badge',
-        description: nested['description'] as String? ?? '',
-        iconUrl: nested['icon_url'] as String?,
+        title: nested['title_ru'] as String? ??
+            nested['title'] as String? ??
+            'Badge',
+        description: nested['description_ru'] as String? ??
+            nested['description'] as String? ??
+            '',
+        iconUrl: nested['icon_url'] as String? ?? nested['icon'] as String?,
         earnedAt: DateTime.tryParse(json['earned_at'] as String? ?? ''),
       );
     }
     return Achievement(
       id: json['id'] as String,
       code: json['code'] as String? ?? '',
-      title: json['title'] as String? ?? 'Badge',
-      description: json['description'] as String? ?? '',
-      iconUrl: json['icon_url'] as String?,
+      title: json['title_ru'] as String? ?? json['title'] as String? ?? 'Badge',
+      description: json['description_ru'] as String? ??
+          json['description'] as String? ??
+          '',
+      iconUrl: json['icon_url'] as String? ?? json['icon'] as String?,
       earnedAt: DateTime.tryParse(json['earned_at'] as String? ?? ''),
     );
   }

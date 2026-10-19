@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/supabase/supabase_init.dart';
+import '../../../core/utils/streak_calculator.dart';
 import '../models/recycling_submission.dart';
 import '../models/waste_category.dart';
 
@@ -71,6 +72,23 @@ class RecycleRepository {
     return counts;
   }
 
+  /// Серия дней подряд с хотя бы одной сдачей (любой статус).
+  Future<int> fetchActiveStreakDays(String userId) async {
+    final rows = await supabase
+        .from('recycling_submissions')
+        .select('submitted_at')
+        .eq('student_id', userId)
+        .order('submitted_at', ascending: false)
+        .limit(400);
+
+    final dates = <DateTime>[];
+    for (final row in rows) {
+      final dt = DateTime.tryParse(row['submitted_at'] as String? ?? '');
+      if (dt != null) dates.add(dt);
+    }
+    return calculateStreakDays(dates);
+  }
+
   Future<RecyclingSubmission> createPhotoClaim({
     required String studentId,
     required String categoryId,
@@ -110,5 +128,98 @@ class RecycleRepository {
         .single();
 
     return RecyclingSubmission.fromJson(row);
+  }
+
+  Future<RecyclingSubmission> createPhotoClaimFull({
+    required String studentId,
+    required String categoryId,
+    required double weightKg,
+    required Uint8List imageBytes,
+    required String fileExt,
+    String? note,
+    String? collectionPointId,
+    double? latitude,
+    double? longitude,
+    double bonusMultiplier = 1,
+  }) async {
+    final path =
+        '$studentId/${DateTime.now().millisecondsSinceEpoch}.$fileExt';
+
+    await supabase.storage.from('submissions').uploadBinary(
+          path,
+          imageBytes,
+          fileOptions: FileOptions(
+            contentType: 'image/$fileExt',
+            upsert: true,
+          ),
+        );
+
+    final photoUrl = supabase.storage.from('submissions').getPublicUrl(path);
+
+    final row = await supabase
+        .from('recycling_submissions')
+        .insert({
+          'student_id': studentId,
+          'category_id': categoryId,
+          'collection_point_id': collectionPointId,
+          'method': 'photo_claim',
+          'status': 'pending',
+          'weight_kg': weightKg,
+          'photo_url': photoUrl,
+          'note': note,
+          'latitude': latitude,
+          'longitude': longitude,
+          'bonus_multiplier': bonusMultiplier,
+        })
+        .select('*, waste_categories(fraction, name_ru)')
+        .single();
+
+    return RecyclingSubmission.fromJson(row);
+  }
+
+  Future<void> createDispute({
+    required String submissionId,
+    required String reason,
+  }) async {
+    final uid = supabase.auth.currentUser?.id;
+    if (uid == null) throw StateError('Not authenticated');
+    await supabase.from('point_disputes').insert({
+      'student_id': uid,
+      'submission_id': submissionId,
+      'reason': reason,
+    });
+  }
+
+  Future<String> exportCsv() async {
+    try {
+      final raw = await supabase.rpc('export_my_activity');
+      final list = raw is List ? raw : <dynamic>[];
+      final buf = StringBuffer(
+        'id,submitted_at,status,weight_kg,points,co2,method\n',
+      );
+      for (final row in list) {
+        if (row is! Map) continue;
+        buf.writeln(
+          '${row['id']},${row['submitted_at']},${row['status']},'
+          '${row['weight_kg']},${row['points_awarded']},${row['co2_awarded']},'
+          '${row['method']}',
+        );
+      }
+      return buf.toString();
+    } catch (_) {
+      final uid = supabase.auth.currentUser?.id;
+      if (uid == null) return 'id\n';
+      final rows = await fetchRecentSubmissions(uid);
+      final buf = StringBuffer(
+        'id,submitted_at,status,weight_kg,points,method\n',
+      );
+      for (final s in rows) {
+        buf.writeln(
+          '${s.id},${s.submittedAt.toIso8601String()},${s.status},'
+          '${s.weightKg},${s.pointsAwarded},${s.method}',
+        );
+      }
+      return buf.toString();
+    }
   }
 }

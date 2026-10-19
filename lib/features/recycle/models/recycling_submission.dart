@@ -42,7 +42,9 @@ class RecyclingSubmission {
       status: json['status'] as String? ?? 'pending',
       weightKg: (json['weight_kg'] as num?)?.toDouble() ?? 0,
       pointsAwarded: (json['points_awarded'] as num?)?.toInt() ?? 0,
-      co2SavedKg: (json['co2_saved_kg'] as num?)?.toDouble() ?? 0,
+      co2SavedKg: (json['co2_awarded'] as num?)?.toDouble() ??
+          (json['co2_saved_kg'] as num?)?.toDouble() ??
+          0,
       submittedAt: DateTime.tryParse(json['submitted_at'] as String? ?? '') ??
           DateTime.now(),
       photoUrl: json['photo_url'] as String?,

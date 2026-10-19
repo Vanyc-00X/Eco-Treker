@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 
+import '../../../core/l10n/app_ru.dart';
+import '../../../core/prefs/app_prefs.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../shared/widgets/app_page.dart';
 import '../../../shared/widgets/eco_card.dart';
+import '../../../shared/widgets/empty_state.dart';
 import '../../../shared/widgets/loading_view.dart';
 import '../../../shared/widgets/section_header.dart';
 import '../../auth/providers/auth_providers.dart';
@@ -18,16 +23,40 @@ class LeaderboardTabNotifier extends Notifier<LeaderboardTab> {
   void setTab(LeaderboardTab tab) => state = tab;
 }
 
-final _tabProvider =
-    NotifierProvider<LeaderboardTabNotifier, LeaderboardTab>(
+final _tabProvider = NotifierProvider<LeaderboardTabNotifier, LeaderboardTab>(
   LeaderboardTabNotifier.new,
 );
 
-final _leaderboardProvider =
-    FutureProvider.autoDispose<List<LeaderboardEntry>>((ref) {
-  final tab = ref.watch(_tabProvider);
-  return LeaderboardRepository().fetch(tab);
-});
+class _MetricNotifier extends Notifier<LeaderboardMetric> {
+  @override
+  LeaderboardMetric build() => LeaderboardMetric.points;
+  void set(LeaderboardMetric m) => state = m;
+}
+
+final _metricProvider =
+    NotifierProvider<_MetricNotifier, LeaderboardMetric>(_MetricNotifier.new);
+
+class _PeriodNotifier extends Notifier<LeaderboardPeriod> {
+  @override
+  LeaderboardPeriod build() => LeaderboardPeriod.all;
+  void set(LeaderboardPeriod p) => state = p;
+}
+
+final _periodProvider =
+    NotifierProvider<_PeriodNotifier, LeaderboardPeriod>(_PeriodNotifier.new);
+
+final _leaderboardProvider = FutureProvider.autoDispose<List<LeaderboardEntry>>(
+  (ref) {
+    final tab = ref.watch(_tabProvider);
+    final metric = ref.watch(_metricProvider);
+    final period = ref.watch(_periodProvider);
+    return LeaderboardRepository().fetch(
+      tab,
+      metric: metric,
+      period: period,
+    );
+  },
+);
 
 class LeaderboardScreen extends ConsumerWidget {
   const LeaderboardScreen({super.key});
@@ -35,134 +64,200 @@ class LeaderboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tab = ref.watch(_tabProvider);
+    final metric = ref.watch(_metricProvider);
+    final period = ref.watch(_periodProvider);
     final boardAsync = ref.watch(_leaderboardProvider);
     final me = ref.watch(currentProfileProvider).asData?.value;
 
-    return RefreshIndicator(
-      onRefresh: () async => ref.invalidate(_leaderboardProvider),
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-        children: [
-          const SectionHeader(
-            title: 'Eco Leaderboard',
-            subtitle: 'See how you stack up against the campus',
-            serif: true,
-          ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: const Color(0xFFECEDE6),
-              borderRadius: BorderRadius.circular(28),
+    return AppPage(
+      child: RefreshIndicator(
+        color: AppColors.primary,
+        onRefresh: () async => ref.invalidate(_leaderboardProvider),
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          children: [
+            const SectionHeader(
+              title: AppRu.ecoLeaderboard,
+              subtitle: AppRu.leaderboardSubtitle,
+              serif: true,
             ),
-            child: Row(
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 6,
               children: [
-                _TabChip(
-                  label: 'Students',
-                  selected: tab == LeaderboardTab.students,
-                  onTap: () => ref
-                      .read(_tabProvider.notifier)
-                      .setTab(LeaderboardTab.students),
-                ),
-                _TabChip(
-                  label: 'Groups',
-                  selected: tab == LeaderboardTab.groups,
-                  onTap: () => ref
-                      .read(_tabProvider.notifier)
-                      .setTab(LeaderboardTab.groups),
-                ),
-                _TabChip(
-                  label: 'Faculties',
-                  selected: tab == LeaderboardTab.faculties,
-                  onTap: () => ref
-                      .read(_tabProvider.notifier)
-                      .setTab(LeaderboardTab.faculties),
-                ),
+                for (final m in LeaderboardMetric.values)
+                  ChoiceChip(
+                    label: Text(switch (m) {
+                      LeaderboardMetric.points => AppRu.metricPoints,
+                      LeaderboardMetric.kg => AppRu.metricKg,
+                      LeaderboardMetric.co2 => AppRu.metricCo2,
+                      LeaderboardMetric.challenges => AppRu.metricChallenges,
+                    }),
+                    selected: metric == m,
+                    onSelected: (_) =>
+                        ref.read(_metricProvider.notifier).set(m),
+                  ),
               ],
             ),
-          ),
-          const SizedBox(height: 20),
-          boardAsync.when(
-            loading: () => const SizedBox(
-              height: 240,
-              child: LoadingView(),
+            Wrap(
+              spacing: 6,
+              children: [
+                for (final p in LeaderboardPeriod.values)
+                  ChoiceChip(
+                    label: Text(switch (p) {
+                      LeaderboardPeriod.week => AppRu.periodWeek,
+                      LeaderboardPeriod.month => AppRu.periodMonth,
+                      LeaderboardPeriod.semester => AppRu.periodSemester,
+                      LeaderboardPeriod.year => AppRu.periodYear,
+                      LeaderboardPeriod.all => AppRu.periodAll,
+                    }),
+                    selected: period == p,
+                    onSelected: (_) =>
+                        ref.read(_periodProvider.notifier).set(p),
+                  ),
+              ],
             ),
-            error: (e, _) => ErrorView(
-              message: e.toString(),
-              onRetry: () => ref.invalidate(_leaderboardProvider),
-            ),
-            data: (entries) {
-              if (entries.isEmpty) {
-                return const EcoCard(
-                  child: Text('Leaderboard is empty for now.'),
-                );
-              }
-
-              final top = entries.take(3).toList();
-              final rest = entries.skip(3).toList();
-              final fmt = NumberFormat('#,###');
-
-              return Column(
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFECEDE6),
+                borderRadius: BorderRadius.circular(28),
+              ),
+              child: Row(
                 children: [
-                  if (top.isNotEmpty) _Podium(top: top, fmt: fmt),
-                  const SizedBox(height: 16),
-                  ...rest.map((entry) {
-                    final isMe = me != null && entry.id == me.id;
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: EcoCard(
-                        color: isMe ? const Color(0xFFE8F8D8) : Colors.white,
-                        child: Row(
-                          children: [
-                            SizedBox(
-                              width: 28,
-                              child: Text(
-                                '${entry.rank}',
+                  _TabChip(
+                    label: AppRu.students,
+                    selected: tab == LeaderboardTab.students,
+                    onTap: () => ref
+                        .read(_tabProvider.notifier)
+                        .setTab(LeaderboardTab.students),
+                  ),
+                  _TabChip(
+                    label: AppRu.groups,
+                    selected: tab == LeaderboardTab.groups,
+                    onTap: () => ref
+                        .read(_tabProvider.notifier)
+                        .setTab(LeaderboardTab.groups),
+                  ),
+                  _TabChip(
+                    label: AppRu.faculties,
+                    selected: tab == LeaderboardTab.faculties,
+                    onTap: () => ref
+                        .read(_tabProvider.notifier)
+                        .setTab(LeaderboardTab.faculties),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            boardAsync.when(
+              loading: () => const SizedBox(height: 240, child: LoadingView()),
+              error: (e, _) => ErrorView(
+                message: e.toString(),
+                onRetry: () => ref.invalidate(_leaderboardProvider),
+              ),
+              data: (entries) {
+                if (entries.isEmpty) {
+                  return const EmptyState(
+                    icon: Icons.leaderboard_rounded,
+                    title: AppRu.leaderboardEmpty,
+                  );
+                }
+
+                final top = entries.take(3).toList();
+                final rest = entries.skip(3).toList();
+                final fmt = NumberFormat('#,###', 'ru');
+                LeaderboardEntry? myEntry;
+                for (final e in entries) {
+                  if (me != null && e.id == me.id) {
+                    myEntry = e;
+                    break;
+                  }
+                }
+                return Column(
+                  children: [
+                    if (top.isNotEmpty) _Podium(top: top, fmt: fmt),
+                    if (myEntry != null)
+                      TextButton.icon(
+                        onPressed: () async {
+                          await saveRankSnapshot(
+                            ref.read(sharedPreferencesProvider),
+                            myEntry!.rank,
+                          );
+                          await SharePlus.instance.share(
+                            ShareParams(
+                              text:
+                                  'Моё место в Eco-Tracker: #${myEntry.rank} '
+                                  '(${myEntry.greenPoints} б.)',
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.share),
+                        label: Text('Поделиться: #${myEntry.rank}'),
+                      ),
+                    const SizedBox(height: 16),
+                    ...rest.map((entry) {
+                      final isMe = me != null && entry.id == me.id;
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: EcoCard(
+                          color: isMe ? const Color(0xFFE8F8D8) : Colors.white,
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 28,
+                                child: Text(
+                                  '${entry.rank}',
+                                  style: GoogleFonts.dmSans(
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.muted,
+                                  ),
+                                ),
+                              ),
+                              CircleAvatar(
+                                radius: 18,
+                                backgroundColor: AppColors.mint,
+                                child: Text(
+                                  entry.name.isNotEmpty
+                                      ? entry.name[0].toUpperCase()
+                                      : '?',
+                                  style: const TextStyle(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  isMe
+                                      ? '${entry.name} (${AppRu.you})'
+                                      : entry.name,
+                                  style: GoogleFonts.dmSans(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                '${fmt.format(entry.greenPoints)} ${AppRu.pointsShort}',
                                 style: GoogleFonts.dmSans(
                                   fontWeight: FontWeight.w800,
-                                  color: AppColors.muted,
-                                ),
-                              ),
-                            ),
-                            CircleAvatar(
-                              radius: 18,
-                              backgroundColor: AppColors.mint,
-                              child: Text(
-                                entry.name.isNotEmpty
-                                    ? entry.name[0].toUpperCase()
-                                    : '?',
-                                style: const TextStyle(
                                   color: AppColors.primary,
-                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                isMe ? '${entry.name} (You)' : entry.name,
-                                style: GoogleFonts.dmSans(
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                            Text(
-                              '${fmt.format(entry.greenPoints)} pts',
-                              style: GoogleFonts.dmSans(
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  }),
-                ],
-              );
-            },
-          ),
-        ],
+                      );
+                    }),
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -291,8 +386,11 @@ class _PodiumSlot extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         if (crown)
-          const Icon(Icons.workspace_premium_rounded,
-              color: AppColors.accent, size: 22),
+          const Icon(
+            Icons.workspace_premium_rounded,
+            color: AppColors.accent,
+            size: 22,
+          ),
         CircleAvatar(
           radius: 22,
           backgroundColor: AppColors.mint,
@@ -312,7 +410,7 @@ class _PodiumSlot extends StatelessWidget {
           style: GoogleFonts.dmSans(fontWeight: FontWeight.w800),
         ),
         Text(
-          '${fmt.format(entry!.greenPoints)} pts',
+          '${fmt.format(entry!.greenPoints)} ${AppRu.pointsShort}',
           style: const TextStyle(color: AppColors.muted, fontSize: 12),
         ),
         const SizedBox(height: 8),

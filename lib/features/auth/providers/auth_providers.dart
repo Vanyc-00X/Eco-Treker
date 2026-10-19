@@ -14,5 +14,5 @@ final authStateProvider = StreamProvider<AuthState>((ref) {
 
 final currentProfileProvider = FutureProvider<Profile?>((ref) async {
   ref.watch(authStateProvider);
-  return ref.watch(authRepositoryProvider).fetchProfile();
+  return ref.watch(authRepositoryProvider).fetchOrEnsureProfile();
 });

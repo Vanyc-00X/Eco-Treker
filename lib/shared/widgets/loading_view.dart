@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/l10n/app_ru.dart';
 import '../../core/theme/app_colors.dart';
 
 class LoadingView extends StatelessWidget {
@@ -41,7 +42,7 @@ class ErrorView extends StatelessWidget {
             Text(message, textAlign: TextAlign.center),
             if (onRetry != null) ...[
               const SizedBox(height: 12),
-              TextButton(onPressed: onRetry, child: const Text('Retry')),
+              TextButton(onPressed: onRetry, child: const Text(AppRu.retry)),
             ],
           ],
         ),
