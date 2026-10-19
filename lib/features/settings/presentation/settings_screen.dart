@@ -365,12 +365,12 @@ class SettingsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 10),
             EcoCard(
-              onTap: () => launchUrl(Uri.parse('mailto:eco@university.ru')),
+              onTap: () => launchUrl(Uri.parse('mailto:mck.ktits@tatar.ru')),
               child: const ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: Icon(Icons.support_agent_outlined),
                 title: Text(AppRu.support),
-                subtitle: Text('eco@university.ru'),
+                subtitle: Text('mck.ktits@tatar.ru · mck-ktits.ru'),
                 trailing: Icon(Icons.chevron_right_rounded),
               ),
             ),

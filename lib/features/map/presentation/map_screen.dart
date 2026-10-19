@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../core/campus/mck_ktits.dart';
 import '../../../core/l10n/app_ru.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/eco_card.dart';
@@ -155,7 +156,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
         final center = filtered.isNotEmpty
             ? LatLng(filtered.first.latitude, filtered.first.longitude)
-            : const LatLng(55.7558, 37.6173);
+            : const LatLng(MckKtits.campusLat, MckKtits.campusLng);
 
         return Stack(
           children: [

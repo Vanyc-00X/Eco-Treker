@@ -338,8 +338,12 @@ class _PointsTabState extends ConsumerState<_PointsTab> {
     final name = TextEditingController(text: existing?['name'] as String?);
     final address =
         TextEditingController(text: existing?['address'] as String?);
-    final lat = TextEditingController(text: '${existing?['latitude'] ?? 55.75}');
-    final lng = TextEditingController(text: '${existing?['longitude'] ?? 37.62}');
+    final lat = TextEditingController(
+      text: '${existing?['latitude'] ?? 55.8304}',
+    );
+    final lng = TextEditingController(
+      text: '${existing?['longitude'] ?? 49.1328}',
+    );
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -364,8 +368,8 @@ class _PointsTabState extends ConsumerState<_PointsTab> {
       if (existing?['id'] != null) 'id': existing!['id'],
       'name': name.text.trim(),
       'address': address.text.trim(),
-      'latitude': double.tryParse(lat.text) ?? 55.75,
-      'longitude': double.tryParse(lng.text) ?? 37.62,
+      'latitude': double.tryParse(lat.text) ?? 55.8304,
+      'longitude': double.tryParse(lng.text) ?? 49.1328,
       'is_active': true,
       'accepted_fractions': existing?['accepted_fractions'] ??
           ['plastic', 'paper', 'glass', 'metal', 'hazardous'],

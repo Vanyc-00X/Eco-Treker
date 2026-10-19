@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../core/campus/mck_ktits.dart';
 import '../../../core/l10n/app_ru.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/app_page.dart';
+import '../../../shared/widgets/mck_student_fields.dart';
 import '../../auth/providers/auth_providers.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
@@ -15,11 +17,12 @@ class EditProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _fullName = TextEditingController();
   final _phone = TextEditingController();
-  final _course = TextEditingController();
   final _group = TextEditingController();
-  final _faculty = TextEditingController();
+  int? _course;
+  MckSpecialty? _specialty;
   DateTime? _dob;
   bool _loading = false;
   bool _inited = false;
@@ -28,9 +31,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   void dispose() {
     _fullName.dispose();
     _phone.dispose();
-    _course.dispose();
     _group.dispose();
-    _faculty.dispose();
     super.dispose();
   }
 
@@ -64,14 +65,17 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   }
 
   Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
     try {
+      final existing =
+          ref.read(currentProfileProvider).asData?.value?.facultyName;
       await ref.read(authRepositoryProvider).updateProfile(
             fullName: _fullName.text.trim(),
             phone: _phone.text.trim(),
-            course: int.tryParse(_course.text.trim()),
+            course: _course,
             groupName: _group.text.trim(),
-            facultyName: _faculty.text.trim(),
+            facultyName: _specialty?.label ?? existing,
             dateOfBirth: _dob,
           );
       ref.invalidate(currentProfileProvider);
@@ -107,104 +111,108 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           if (!_inited) {
             _fullName.text = profile.fullName;
             _phone.text = profile.phone ?? '';
-            _course.text = profile.course?.toString() ?? '';
             _group.text = profile.groupName ?? '';
-            _faculty.text = profile.facultyName ?? '';
+            _course = profile.course != null &&
+                    MckKtits.courses.contains(profile.course)
+                ? profile.course
+                : profile.course;
+            _specialty = MckKtits.findByLabel(profile.facultyName);
             _dob = profile.dateOfBirth;
             _inited = true;
           }
           return AppPage(
-            child: ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
-                Center(
-                  child: Column(
-                    children: [
-                      CircleAvatar(
-                        radius: 44,
-                        backgroundImage: profile.avatarUrl != null
-                            ? NetworkImage(profile.avatarUrl!)
-                            : null,
-                        child: profile.avatarUrl == null
-                            ? const Icon(Icons.person, size: 40)
-                            : null,
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          TextButton.icon(
-                            onPressed: () => _pickAvatar(ImageSource.camera),
-                            icon: const Icon(Icons.photo_camera_outlined),
-                            label: const Text(AppRu.takePhoto),
-                          ),
-                          TextButton.icon(
-                            onPressed: () => _pickAvatar(ImageSource.gallery),
-                            icon: const Icon(Icons.photo_outlined),
-                            label: const Text(AppRu.chooseGallery),
-                          ),
-                        ],
-                      ),
-                      Text(
-                        '${profile.ecoLevelLabel} · ${profile.greenPoints} ${AppRu.pointsShort}',
-                        style: const TextStyle(color: AppColors.muted),
-                      ),
-                      const SizedBox(height: 6),
-                      LinearProgressIndicator(value: profile.levelProgress),
-                    ],
+            child: Form(
+              key: _formKey,
+              child: ListView(
+                padding: const EdgeInsets.all(20),
+                children: [
+                  Center(
+                    child: Column(
+                      children: [
+                        CircleAvatar(
+                          radius: 44,
+                          backgroundImage: profile.avatarUrl != null
+                              ? NetworkImage(profile.avatarUrl!)
+                              : null,
+                          child: profile.avatarUrl == null
+                              ? const Icon(Icons.person, size: 40)
+                              : null,
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            TextButton.icon(
+                              onPressed: () =>
+                                  _pickAvatar(ImageSource.camera),
+                              icon: const Icon(Icons.photo_camera_outlined),
+                              label: const Text(AppRu.takePhoto),
+                            ),
+                            TextButton.icon(
+                              onPressed: () =>
+                                  _pickAvatar(ImageSource.gallery),
+                              icon: const Icon(Icons.photo_outlined),
+                              label: const Text(AppRu.chooseGallery),
+                            ),
+                          ],
+                        ),
+                        Text(
+                          '${profile.ecoLevelLabel} · ${profile.greenPoints} ${AppRu.pointsShort}',
+                          style: const TextStyle(color: AppColors.muted),
+                        ),
+                        const SizedBox(height: 6),
+                        LinearProgressIndicator(value: profile.levelProgress),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _fullName,
-                  decoration: const InputDecoration(labelText: AppRu.fullName),
-                ),
-                TextField(
-                  controller: _phone,
-                  decoration: const InputDecoration(labelText: AppRu.phone),
-                ),
-                TextField(
-                  controller: _group,
-                  decoration: const InputDecoration(labelText: AppRu.groupName),
-                ),
-                TextField(
-                  controller: _faculty,
-                  decoration:
-                      const InputDecoration(labelText: AppRu.facultyName),
-                ),
-                TextField(
-                  controller: _course,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: AppRu.course),
-                ),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text(AppRu.dateOfBirth),
-                  subtitle: Text(
-                    _dob == null
-                        ? AppRu.notSpecified
-                        : _dob!.toIso8601String().substring(0, 10),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _fullName,
+                    decoration:
+                        const InputDecoration(labelText: AppRu.fullName),
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? AppRu.requiredField
+                        : null,
                   ),
-                  trailing: const Icon(Icons.calendar_today_outlined),
-                  onTap: () async {
-                    final picked = await showDatePicker(
-                      context: context,
-                      firstDate: DateTime(1980),
-                      lastDate: DateTime.now(),
-                      initialDate: _dob ?? DateTime(2005),
-                    );
-                    if (picked != null) setState(() => _dob = picked);
-                  },
-                ),
-                const SizedBox(height: 16),
-                FilledButton(
-                  onPressed: _loading ? null : _save,
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size.fromHeight(50),
+                  TextFormField(
+                    controller: _phone,
+                    decoration: const InputDecoration(labelText: AppRu.phone),
                   ),
-                  child: const Text(AppRu.save),
-                ),
-              ],
+                  const SizedBox(height: 8),
+                  MckStudentFields(
+                    course: _course,
+                    specialty: _specialty,
+                    groupController: _group,
+                    onCourseChanged: (v) => setState(() => _course = v),
+                    onSpecialtyChanged: (v) => setState(() => _specialty = v),
+                    requireAll: false,
+                  ),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text(AppRu.dateOfBirth),
+                    subtitle: Text(
+                      _dob == null
+                          ? AppRu.notSpecified
+                          : _dob!.toIso8601String().substring(0, 10),
+                    ),
+                    trailing: const Icon(Icons.calendar_today_outlined),
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        firstDate: DateTime(1980),
+                        lastDate: DateTime.now(),
+                        initialDate: _dob ?? DateTime(2005),
+                      );
+                      if (picked != null) setState(() => _dob = picked);
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    onPressed: _loading ? null : _save,
+                    child: Text(_loading ? AppRu.loading : AppRu.save),
+                  ),
+                ],
+              ),
             ),
           );
         },

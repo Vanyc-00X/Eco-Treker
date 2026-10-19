@@ -3,11 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/campus/mck_ktits.dart';
 import '../../../core/l10n/app_ru.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/email_domain.dart';
 import '../../../core/utils/otp_limiter.dart';
 import '../../../core/utils/password_validator.dart';
+import '../../../shared/widgets/mck_student_fields.dart';
 import '../providers/auth_providers.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -25,12 +27,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   final _password = TextEditingController();
   final _fullName = TextEditingController();
   final _group = TextEditingController();
-  final _faculty = TextEditingController();
-  final _course = TextEditingController();
   final _phone = TextEditingController();
   final _otp = TextEditingController();
   final _otpLimiter = OtpLimiter();
 
+  int? _course;
+  MckSpecialty? _specialty;
   bool _isRegister = false;
   bool _loading = false;
   bool _obscure = true;
@@ -54,8 +56,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     _password.dispose();
     _fullName.dispose();
     _group.dispose();
-    _faculty.dispose();
-    _course.dispose();
     _phone.dispose();
     _otp.dispose();
     super.dispose();
@@ -92,8 +92,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           password: _password.text,
           fullName: _fullName.text.trim(),
           groupName: _group.text.trim(),
-          facultyName: _faculty.text.trim(),
-          course: int.tryParse(_course.text.trim()),
+          facultyName: _specialty?.label,
+          course: _course,
         );
         if (!mounted) return;
         if (result.session == null) {
@@ -360,27 +360,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
               validator: (v) =>
                   (v == null || v.trim().isEmpty) ? AppRu.requiredField : null,
             ),
-            TextFormField(
-              controller: _group,
-              decoration: const InputDecoration(labelText: AppRu.groupName),
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? AppRu.requiredField : null,
-            ),
-            TextFormField(
-              controller: _faculty,
-              decoration: const InputDecoration(labelText: AppRu.facultyName),
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? AppRu.requiredField : null,
-            ),
-            TextFormField(
-              controller: _course,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: AppRu.course),
-              validator: (v) {
-                final n = int.tryParse(v ?? '');
-                if (n == null || n < 1 || n > 6) return AppRu.requiredField;
-                return null;
-              },
+            const SizedBox(height: 8),
+            MckStudentFields(
+              course: _course,
+              specialty: _specialty,
+              groupController: _group,
+              onCourseChanged: (v) => setState(() => _course = v),
+              onSpecialtyChanged: (v) => setState(() => _specialty = v),
             ),
           ],
           TextFormField(

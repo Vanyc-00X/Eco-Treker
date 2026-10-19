@@ -1,6 +1,6 @@
 /// Централизованные строки UI (русский).
 abstract final class AppRu {
-  static const appTitle = 'Campus Eco-Tracker';
+  static const appTitle = 'Eco-Treker МЦК-КТИТС';
 
   static const navDashboard = 'Главная';
   static const navRecycle = 'Сдача';
@@ -22,8 +22,10 @@ abstract final class AppRu {
   static const loading = 'Загрузка…';
 
   // Auth
-  static const authSubtitleLogin = 'Войдите, чтобы отслеживать переработку';
-  static const authSubtitleRegister = 'Создайте эко-аккаунт';
+  static const authSubtitleLogin =
+      'Вход для студентов МЦК-КТИТС — сдача вторсырья и рейтинг техникума';
+  static const authSubtitleRegister =
+      'Регистрация студента МЦК-КТИТС (Казань, Бари Галеева 3-А)';
   static const fullName = 'ФИО';
   static const email = 'Email';
   static const password = 'Пароль';
@@ -49,7 +51,11 @@ abstract final class AppRu {
   static const profileRlsBlocked =
       'RLS блокирует профиль. Попросите админа применить SQL-миграции.';
   static const groupName = 'Учебная группа';
-  static const facultyName = 'Факультет / институт';
+  static const groupHint = 'Например: ИСП-21, ССА-32';
+  static const facultyName = 'Специальность';
+  static const specialtyName = 'Специальность';
+  static const specialtyHelper = 'По каталогу специальностей МЦК-КТИТС';
+  static const departmentName = 'Отделение';
   static const consentPrivacy = 'Согласие на обработку персональных данных';
   static const consentTos = 'Согласие с пользовательским соглашением';
   static const acceptConsents = 'Примите согласия для регистрации';
@@ -60,9 +66,9 @@ abstract final class AppRu {
   static const otpCode = 'Код из SMS';
   static const otpResendIn = 'Повтор через';
   static const otpLocked = 'Слишком много попыток. Подождите 15 минут.';
-  static const ssoButton = 'Войти через вуз (SSO)';
+  static const ssoButton = 'Войти через МЦК-КТИТС (SSO)';
   static const ssoStubBody =
-      'Интеграция с IdP вуза готовится. Используйте email или телефон.';
+      'Единый вход техникума готовится. Пока используйте email или телефон.';
   static const mockPhoneHint =
       'Код придёт на экран (SMS-провайдер не настроен). Введите его и нажмите «Подтвердить».';
   static const otpDevCodeShown = 'Ваш код для входа';
@@ -190,17 +196,17 @@ abstract final class AppRu {
   static const daysLeft = 'дн. осталось';
   static const hoursLeft = 'ч осталось';
   static const minutesLeft = 'мин осталось';
-  static const typeTeam = 'Команда факультета';
+  static const typeTeam = 'Команда отделения';
   static const typeDaily = 'Ежедневный';
   static const typeWeekly = 'Еженедельный';
   static const typeIndividual = 'Индивидуальный';
 
   // Leaderboard
   static const ecoLeaderboard = 'Эко-рейтинг';
-  static const leaderboardSubtitle = 'Сравните себя с кампусом';
+  static const leaderboardSubtitle = 'Сравните себя с техникумом';
   static const students = 'Студенты';
   static const groups = 'Группы';
-  static const faculties = 'Факультеты';
+  static const faculties = 'Отделения';
   static const leaderboardEmpty = 'Рейтинг пока пуст.';
   static const you = 'Вы';
 
@@ -233,15 +239,15 @@ abstract final class AppRu {
   static const onboardingSkip = 'Пропустить';
   static const onboardingNext = 'Далее';
   static const onboardingStart = 'Начать';
-  static const onboarding1Title = 'Сдавайте отходы на кампусе';
+  static const onboarding1Title = 'Сдавайте отходы у техникума';
   static const onboarding1Body =
       'Фото-заявка или QR Eco-ID — баллы и CO₂ учитываются автоматически.';
   static const onboarding2Title = 'Соревнуйтесь и растите серию';
   static const onboarding2Body =
-      'Челленджи, бейджи и рейтинг факультетов — эко-привычка становится игрой.';
+      'Челленджи, бейджи и рейтинг отделений МЦК-КТИТС — эко-привычка становится игрой.';
   static const onboarding3Title = 'Меняйте баллы на награды';
   static const onboarding3Body =
-      'Кофе, эко-сумки и мерч кампуса — за реальную переработку.';
+      'Кофе, эко-сумки и мерч техникума — за реальную переработку.';
 
   // Profile / settings
   static const settings = 'Настройки';
@@ -253,7 +259,7 @@ abstract final class AppRu {
   static const save = 'Сохранить';
   static const about = 'О приложении';
   static const aboutBody =
-      'Campus Eco-Tracker 1.0.0 — экосистема кампусной переработки: сдача, челленджи, рейтинг и карта пунктов.';
+      'Eco-Treker 1.0 для студентов МЦК-КТИТС (Казань): сдача вторсырья, челленджи, рейтинг отделений и карта пунктов у техникума.';
   static const theme = 'Тема';
   static const themeSystem = 'Системная';
   static const themeLight = 'Светлая';
