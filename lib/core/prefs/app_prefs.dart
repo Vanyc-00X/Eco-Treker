@@ -1,9 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _kOnboardingDone = 'onboarding_done_v1';
-const _kThemeMode = 'theme_mode_v1';
 const kLocaleCode = 'locale_code_v1';
 const _kAccent = 'accent_color_v1';
 const _kNotifChallenges = 'notif_challenges';
@@ -35,31 +33,6 @@ class OnboardingDoneNotifier extends Notifier<bool> {
   Future<void> reset() async {
     await ref.read(sharedPreferencesProvider).setBool(_kOnboardingDone, false);
     state = false;
-  }
-}
-
-final themeModeProvider =
-    NotifierProvider<ThemeModeNotifier, ThemeMode>(ThemeModeNotifier.new);
-
-class ThemeModeNotifier extends Notifier<ThemeMode> {
-  @override
-  ThemeMode build() {
-    final raw = ref.watch(sharedPreferencesProvider).getString(_kThemeMode);
-    return switch (raw) {
-      'dark' => ThemeMode.dark,
-      'light' => ThemeMode.light,
-      _ => ThemeMode.system,
-    };
-  }
-
-  Future<void> setMode(ThemeMode mode) async {
-    final value = switch (mode) {
-      ThemeMode.dark => 'dark',
-      ThemeMode.light => 'light',
-      ThemeMode.system => 'system',
-    };
-    await ref.read(sharedPreferencesProvider).setString(_kThemeMode, value);
-    state = mode;
   }
 }
 

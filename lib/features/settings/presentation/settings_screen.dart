@@ -72,7 +72,6 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final mode = ref.watch(themeModeProvider);
     final locale = ref.watch(localeCodeProvider);
     final notif = ref.watch(notificationPrefsProvider);
     final accent = ref.watch(accentColorProvider);
@@ -84,41 +83,6 @@ class SettingsScreen extends ConsumerWidget {
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
         child: ListView(
           children: [
-            Text(
-              AppRu.theme,
-              style: GoogleFonts.dmSans(fontWeight: FontWeight.w800, fontSize: 16),
-            ),
-            const SizedBox(height: 10),
-            EcoCard(
-              child: Column(
-                children: [
-                  _ThemeTile(
-                    label: AppRu.themeSystem,
-                    selected: mode == ThemeMode.system,
-                    onTap: () => ref
-                        .read(themeModeProvider.notifier)
-                        .setMode(ThemeMode.system),
-                  ),
-                  const Divider(height: 1),
-                  _ThemeTile(
-                    label: AppRu.themeLight,
-                    selected: mode == ThemeMode.light,
-                    onTap: () => ref
-                        .read(themeModeProvider.notifier)
-                        .setMode(ThemeMode.light),
-                  ),
-                  const Divider(height: 1),
-                  _ThemeTile(
-                    label: AppRu.themeDark,
-                    selected: mode == ThemeMode.dark,
-                    onTap: () => ref
-                        .read(themeModeProvider.notifier)
-                        .setMode(ThemeMode.dark),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 18),
             Text(
               AppRu.language,
               style: GoogleFonts.dmSans(fontWeight: FontWeight.w800, fontSize: 16),
@@ -393,12 +357,10 @@ class SettingsScreen extends ConsumerWidget {
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.info_outline_rounded),
                 title: const Text(AppRu.about),
-                subtitle: Text(
+                subtitle: const Text(
                   AppRu.aboutBody,
                   style: TextStyle(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? AppColors.mutedDark
-                        : AppColors.muted,
+                    color: AppColors.muted,
                     fontSize: 13,
                   ),
                 ),
@@ -441,26 +403,3 @@ class SettingsScreen extends ConsumerWidget {
   }
 }
 
-class _ThemeTile extends StatelessWidget {
-  const _ThemeTile({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      title: Text(label),
-      trailing: selected
-          ? const Icon(Icons.check_circle_rounded, color: AppColors.accentDeep)
-          : const Icon(Icons.circle_outlined, color: AppColors.muted),
-      onTap: onTap,
-    );
-  }
-}

@@ -16,8 +16,8 @@ create extension if not exists pgcrypto;
 -- ---------------------------------------------------------------------------
 -- 0. Временные справочники имён / групп
 -- ---------------------------------------------------------------------------
-drop table if exists _seed_people;
-create temporary table _seed_people (
+drop table if exists public._seed_people;
+create table public._seed_people (
   n int primary key,
   full_name text not null,
   role text not null,
@@ -31,7 +31,7 @@ create temporary table _seed_people (
   eco_level text not null
 );
 
-insert into _seed_people values
+insert into public._seed_people values
   (1,  'Айрат Закиров',           'student',   2, 'ИСп-221', 'Информационные технологии',              '+79061234001', 420, 18.4, 27.6, 'forest_keeper'),
   (2,  'Камила Нуриева',          'student',   1, 'ИСп-241', 'Базовая профессиональная подготовка',     '+79061234002', 95,  3.2,  4.8,  'eco_novice'),
   (3,  'Данил Смирнов',           'student',   3, 'ССАп-211', 'Сетевые технологии',                     '+79061234003', 610, 31.0, 46.5, 'forest_keeper'),
@@ -79,7 +79,7 @@ begin
     inst := '00000000-0000-0000-0000-000000000000';
   end if;
 
-  for r in select * from _seed_people order by n loop
+  for r in select * from public._seed_people order by n loop
     mail := 'seed' || lpad(r.n::text, 2, '0') || '@mck-ktits.demo';
 
     select id into uid from auth.users where email = mail;
@@ -141,8 +141,8 @@ begin
 end $$;
 
 -- карта n → profile id
-drop table if exists _seed_uids;
-create temporary table _seed_uids as
+drop table if exists public._seed_uids;
+create table public._seed_uids as
 select
   sp.n,
   p.id,
@@ -150,7 +150,7 @@ select
   sp.role,
   sp.group_name,
   sp.faculty_name
-from _seed_people sp
+from public._seed_people sp
 join public.profiles p
   on p.email = 'seed' || lpad(sp.n::text, 2, '0') || '@mck-ktits.demo';
 
@@ -202,7 +202,7 @@ on conflict (id) do update set name = excluded.name, short_name = excluded.short
 -- привязка профилей к факультетам
 update public.profiles p
 set faculty_id = f.id
-from _seed_uids u
+from public._seed_uids u
 join public.faculties f on f.short_name = 'SEED' || lpad(
   case u.faculty_name
     when 'Базовая профессиональная подготовка' then 1
@@ -218,7 +218,7 @@ where p.id = u.id;
 -- 3. groups (30)
 -- ---------------------------------------------------------------------------
 delete from public.groups where name like 'SEED-%' or name in (
-  select group_name from _seed_people
+  select group_name from public._seed_people
 );
 
 insert into public.groups (id, name, faculty_id)
@@ -262,7 +262,7 @@ on conflict (id) do update set name = excluded.name, faculty_id = excluded.facul
 
 update public.profiles p
 set group_id = g.id
-from _seed_uids u
+from public._seed_uids u
 join public.groups g on g.name = u.group_name
 where p.id = u.id;
 
@@ -367,7 +367,7 @@ select
   v.frac,
   v.kg,
   now() - (v.ago || ' days')::interval,
-  now() + (v.left || ' days')::interval,
+  now() + (v.days_left || ' days')::interval,
   true
 from (values
   (1,  'Утренняя макулатура',     'Сдайте 2 кг бумаги до обеда',              'daily',     40,  'paper',     2.0,  1,  2),
@@ -400,7 +400,7 @@ from (values
   (28, 'Месяц без отходов',       'Долгий трек: 15 кг',                       'seasonal', 210,  null,      15.0, 25, 60),
   (29, 'Кубок отделений',         'Межотделенческий зачёт 60 кг',             'team',     300,  null,      60.0, 10, 28),
   (30, 'Финиш семестра',          'Закрыть семестр 10 кг лично',              'individual',135, null,      10.0, 18, 35)
-) as v(n, title, descr, ctype, pts, frac, kg, ago, left);
+) as v(n, title, descr, ctype, pts, frac, kg, ago, days_left);
 
 -- ---------------------------------------------------------------------------
 -- 7. achievements → довести до 30
@@ -492,7 +492,7 @@ from (values
   (29, 'metal',     'alu_cans',   'photo_claim', 'verified', 1.9, 1.0,  'Банки после мероприятия',    12),
   (30, 'glass',     'bottles',    'qr_scan',     'verified', 3.4, 1.0,  'Бутылки с площадки двора',   15)
 ) as v(n, fraction, subcode, method, status, weight, mult, note, ago)
-join _seed_uids u on u.n = v.n
+join public._seed_uids u on u.n = v.n
 join public.waste_categories c on c.fraction = v.fraction
 left join public.waste_subcategories sc on sc.category_id = c.id and sc.code = v.subcode
 join public.collection_points cp
@@ -502,7 +502,7 @@ join public.collection_points cp
 -- 9. challenge_participations (30)
 -- ---------------------------------------------------------------------------
 delete from public.challenge_participations cp
-using _seed_uids u
+using public._seed_uids u
 where cp.user_id = u.id;
 
 insert into public.challenge_participations (
@@ -548,7 +548,7 @@ from (values
   (29, 29, 'active',    8.0, 10),
   (30, 30, 'active',    4.4, 9)
 ) as v(n, ch_n, status, progress, ago)
-join _seed_uids u on u.n = v.n
+join public._seed_uids u on u.n = v.n
 join public.challenges ch
   on ch.title like 'SEED:' || lpad(v.ch_n::text, 2, '0') || ' %'
 on conflict (challenge_id, user_id) do nothing;
@@ -557,7 +557,7 @@ on conflict (challenge_id, user_id) do nothing;
 -- 10. user_achievements (30)
 -- ---------------------------------------------------------------------------
 delete from public.user_achievements ua
-using _seed_uids u
+using public._seed_uids u
 where ua.user_id = u.id;
 
 insert into public.user_achievements (user_id, achievement_id, earned_at)
@@ -597,7 +597,7 @@ from (values
   (28, 'seed_dorm', 9),
   (30, 'forest_keeper', 18)
 ) as v(n, code, ago)
-join _seed_uids u on u.n = v.n
+join public._seed_uids u on u.n = v.n
 join public.achievements a on a.code = v.code
 on conflict (user_id, achievement_id) do nothing;
 
@@ -605,7 +605,7 @@ on conflict (user_id, achievement_id) do nothing;
 -- 11. challenge_proofs (30)
 -- ---------------------------------------------------------------------------
 delete from public.challenge_proofs pf
-using _seed_uids u
+using public._seed_uids u
 where pf.user_id = u.id;
 
 insert into public.challenge_proofs (
@@ -655,7 +655,7 @@ from (values
   (29, 30, 'approved', 'Финиш семестра', 12),
   (30, 1,  'pending',  'Досбор пластика', 0)
 ) as v(n, user_n, status, comment, ago)
-join _seed_uids u on u.n = v.user_n
+join public._seed_uids u on u.n = v.user_n
 join public.challenges ch
   on ch.title like 'SEED:' || lpad((((v.n - 1) % 30) + 1)::text, 2, '0') || ' %';
 
@@ -663,7 +663,7 @@ join public.challenges ch
 -- 12. redeem_requests (30)
 -- ---------------------------------------------------------------------------
 delete from public.redeem_requests r
-using _seed_uids u
+using public._seed_uids u
 where r.student_id = u.id;
 
 insert into public.redeem_requests (student_id, reward_code, reward_title, points_cost, status, created_at)
@@ -706,13 +706,13 @@ from (values
   (30, 'merch_hoodie','Худи Eco-Treker',              800,  'pending',    1),
   (6,  'coffee',      'Кофе в буфете',                 80,  'fulfilled', 30)
 ) as v(n, code, title, cost, status, ago)
-join _seed_uids u on u.n = v.n;
+join public._seed_uids u on u.n = v.n;
 
 -- ---------------------------------------------------------------------------
 -- 13. bin_reports (30)
 -- ---------------------------------------------------------------------------
 delete from public.bin_reports br
-using _seed_uids u
+using public._seed_uids u
 where br.reporter_id = u.id;
 
 insert into public.bin_reports (reporter_id, collection_point_id, note, status, created_at)
@@ -754,7 +754,7 @@ from (values
   (30, 'open',         'Сквер: пакеты вокруг урны', 1),
   (10, 'resolved',     'Админ отметил вывоз', 12)
 ) as v(n, status, note, ago)
-join _seed_uids u on u.n = v.n
+join public._seed_uids u on u.n = v.n
 join public.collection_points cp
   on cp.id = ('c3000000-0000-4000-8000-' || lpad((((v.n - 1) % 30) + 1)::text, 12, '0'))::uuid;
 
@@ -762,7 +762,7 @@ join public.collection_points cp
 -- 14. point_disputes (30)
 -- ---------------------------------------------------------------------------
 delete from public.point_disputes d
-using _seed_uids u
+using public._seed_uids u
 where d.student_id = u.id;
 
 insert into public.point_disputes (student_id, submission_id, reason, status, created_at)
@@ -804,7 +804,7 @@ from (values
   (30, 'open',     'Не вижу начисление за двор', 1),
   (10, 'resolved', 'Админ закрыл спор', 11)
 ) as v(n, status, reason, ago)
-join _seed_uids u on u.n = v.n
+join public._seed_uids u on u.n = v.n
 left join lateral (
   select id from public.recycling_submissions
   where student_id = u.id
@@ -816,7 +816,7 @@ left join lateral (
 -- 15. favorites_points (30)
 -- ---------------------------------------------------------------------------
 delete from public.favorites_points fp
-using _seed_uids u
+using public._seed_uids u
 where fp.user_id = u.id;
 
 insert into public.favorites_points (user_id, collection_point_id, created_at)
@@ -832,7 +832,7 @@ from (values
   (19, 10, 4), (20, 15, 15), (21, 3, 1), (22, 22, 5), (23, 24, 3),
   (24, 28, 4), (25, 11, 9), (27, 8, 6), (28, 6, 5), (30, 30, 8)
 ) as v(user_n, point_n, ago)
-join _seed_uids u on u.n = v.user_n
+join public._seed_uids u on u.n = v.user_n
 join public.collection_points cp
   on cp.id = ('c3000000-0000-4000-8000-' || lpad(v.point_n::text, 12, '0'))::uuid
 on conflict do nothing;
@@ -848,7 +848,7 @@ select
   case when sp.n % 7 = 0 then 5 else sp.n % 4 end,
   case when sp.n % 7 = 0 then now() + interval '10 minutes' else null end,
   now() - (sp.n || ' hours')::interval
-from _seed_people sp
+from public._seed_people sp
 on conflict (phone) do update set
   attempts = excluded.attempts,
   locked_until = excluded.locked_until,
@@ -869,7 +869,7 @@ begin
       null,
       now() + interval '10 minutes',
       now()
-    from _seed_people sp
+    from public._seed_people sp
     on conflict (phone) do update set
       code = excluded.code,
       attempts = excluded.attempts,
@@ -899,3 +899,7 @@ union all select 'otp_attempts', count(*) from public.otp_attempts where phone l
 union all select 'achievements_total', count(*) from public.achievements
 union all select 'waste_subcategories_total', count(*) from public.waste_subcategories
 order by 1;
+
+-- cleanup staging
+drop table if exists public._seed_uids;
+drop table if exists public._seed_people;
