@@ -158,13 +158,26 @@ class LeaderboardScreen extends ConsumerWidget {
                 message: e.toString(),
                 onRetry: () => ref.invalidate(_leaderboardProvider),
               ),
-              data: (entries) {
-                if (entries.isEmpty) {
+              data: (rawEntries) {
+                if (rawEntries.isEmpty) {
                   return const EmptyState(
                     icon: Icons.leaderboard_rounded,
                     title: AppRu.leaderboardEmpty,
                   );
                 }
+
+                // Гарантируем уникальные места 1..n (на случай RANK() ties в старой БД).
+                final entries = [
+                  for (var i = 0; i < rawEntries.length; i++)
+                    LeaderboardEntry(
+                      id: rawEntries[i].id,
+                      name: rawEntries[i].name,
+                      greenPoints: rawEntries[i].greenPoints,
+                      rank: i + 1,
+                      subtitle: rawEntries[i].subtitle,
+                      totalKg: rawEntries[i].totalKg,
+                    ),
+                ];
 
                 final top = entries.take(3).toList();
                 final rest = entries.skip(3).toList();
@@ -310,27 +323,21 @@ class _Podium extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    LeaderboardEntry? first;
-    LeaderboardEntry? second;
-    LeaderboardEntry? third;
-    for (final e in top) {
-      if (e.rank == 1) first = e;
-      if (e.rank == 2) second = e;
-      if (e.rank == 3) third = e;
-    }
-    first ??= top.isNotEmpty ? top[0] : null;
-    second ??= top.length > 1 ? top[1] : null;
-    third ??= top.length > 2 ? top[2] : null;
+    // Места по порядку списка: 1-й, 2-й, 3-й — без привязки к SQL RANK().
+    final first = top.isNotEmpty ? top[0] : null;
+    final second = top.length > 1 ? top[1] : null;
+    final third = top.length > 2 ? top[2] : null;
 
     return SizedBox(
-      height: 220,
+      height: 260,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Expanded(
             child: _PodiumSlot(
               entry: second,
-              height: 110,
+              place: 2,
+              height: 100,
               color: AppColors.mint,
               numberColor: AppColors.primary,
               fmt: fmt,
@@ -339,7 +346,8 @@ class _Podium extends StatelessWidget {
           Expanded(
             child: _PodiumSlot(
               entry: first,
-              height: 140,
+              place: 1,
+              height: 130,
               color: AppColors.primary,
               numberColor: Colors.white,
               fmt: fmt,
@@ -349,7 +357,8 @@ class _Podium extends StatelessWidget {
           Expanded(
             child: _PodiumSlot(
               entry: third,
-              height: 90,
+              place: 3,
+              height: 80,
               color: AppColors.mint,
               numberColor: AppColors.primary,
               fmt: fmt,
@@ -364,6 +373,7 @@ class _Podium extends StatelessWidget {
 class _PodiumSlot extends StatelessWidget {
   const _PodiumSlot({
     required this.entry,
+    required this.place,
     required this.height,
     required this.color,
     required this.numberColor,
@@ -372,6 +382,7 @@ class _PodiumSlot extends StatelessWidget {
   });
 
   final LeaderboardEntry? entry;
+  final int place;
   final double height;
   final Color color;
   final Color numberColor;
@@ -383,56 +394,66 @@ class _PodiumSlot extends StatelessWidget {
     if (entry == null) return const SizedBox.shrink();
     final short = entry!.name.split(' ').first;
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        if (crown)
-          const Icon(
-            Icons.workspace_premium_rounded,
-            color: AppColors.accent,
-            size: 22,
-          ),
-        CircleAvatar(
-          radius: 22,
-          backgroundColor: AppColors.mint,
-          child: Text(
-            short.isNotEmpty ? short[0].toUpperCase() : '?',
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: AppColors.primary,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (crown)
+            const Icon(
+              Icons.workspace_premium_rounded,
+              color: AppColors.accent,
+              size: 22,
+            )
+          else
+            const SizedBox(height: 22),
+          CircleAvatar(
+            radius: 20,
+            backgroundColor: AppColors.mint,
+            child: Text(
+              short.isNotEmpty ? short[0].toUpperCase() : '?',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: AppColors.primary,
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          short,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.dmSans(fontWeight: FontWeight.w800),
-        ),
-        Text(
-          '${fmt.format(entry!.greenPoints)} ${AppRu.pointsShort}',
-          style: const TextStyle(color: AppColors.muted, fontSize: 12),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          height: height,
-          margin: const EdgeInsets.symmetric(horizontal: 8),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+          const SizedBox(height: 4),
+          Text(
+            short,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.dmSans(fontWeight: FontWeight.w800, fontSize: 13),
           ),
-          child: Text(
-            '${entry!.rank}',
-            style: GoogleFonts.dmSans(
-              fontSize: 34,
-              fontWeight: FontWeight.w800,
-              color: numberColor,
+          Text(
+            '${fmt.format(entry!.greenPoints)} ${AppRu.pointsShort}',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(color: AppColors.muted, fontSize: 11),
+          ),
+          const SizedBox(height: 6),
+          Container(
+            height: height,
+            width: double.infinity,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(12)),
+            ),
+            child: Text(
+              '$place',
+              style: GoogleFonts.dmSans(
+                fontSize: 32,
+                fontWeight: FontWeight.w800,
+                color: numberColor,
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

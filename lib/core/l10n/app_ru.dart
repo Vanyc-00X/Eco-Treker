@@ -71,8 +71,16 @@ abstract final class AppRu {
       'Единый вход техникума готовится. Пока используйте email или телефон.';
   static const mockPhoneHint =
       'Код придёт на экран (SMS-провайдер не настроен). Введите его и нажмите «Подтвердить».';
+  static const invalidPhone =
+      'Введите номер полностью: 10 цифр после +7';
   static const otpDevCodeShown = 'Ваш код для входа';
   static const otpSmsSent = 'SMS с кодом отправлено';
+  static const approve = 'Подтвердить';
+  static const reject = 'Отклонить';
+  static const rejected = 'Отклонено';
+  static const roleStudent = 'Студент';
+  static const roleVolunteer = 'Волонтёр';
+  static const roleAdmin = 'Администратор';
   static const databaseErrorSavingUser =
       'Ошибка БД при создании пользователя. Выполните SQL 20260403_fix_auth.sql в Supabase.';
   static const language = 'Язык';

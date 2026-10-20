@@ -85,7 +85,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
             bonusMultiplier: mult,
           );
       final text =
-          'Квитанция Eco-Tracker\n${student.fullName}\n${cat.nameRu}: $w кг\n'
+          'Квитанция Eco-Tracker\n${student.displayName}\n${cat.nameRu}: $w кг\n'
           'Баллы: ${sub.pointsAwarded > 0 ? sub.pointsAwarded : preview.points}\n'
           'CO₂: ${sub.co2SavedKg > 0 ? sub.co2SavedKg : preview.co2Kg} кг\n'
           'Множитель: ×$mult';
@@ -153,7 +153,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
             const SizedBox(height: 16),
             Card(
               child: ListTile(
-                title: Text(_student!.fullName),
+                title: Text(_student!.displayName),
                 subtitle: Text(
                   '${_student!.email}\n${_student!.greenPoints} б. · ${_student!.totalKg} кг',
                 ),

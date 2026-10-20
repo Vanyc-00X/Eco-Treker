@@ -4,8 +4,11 @@ Flutter + Supabase: сдача вторсырья, челленджи, рейт�
 
 ## Setup
 
-1. В Supabase SQL Editor выполните **один** файл (полный сброс + схема):
-   - [`supabase/migrations/20260401_tz_full.sql`](supabase/migrations/20260401_tz_full.sql)
+1. В Supabase SQL Editor выполните миграции по порядку:
+   - [`supabase/migrations/20260401_tz_full.sql`](supabase/migrations/20260401_tz_full.sql) (полный сброс + схема)
+   - [`supabase/migrations/20260403_fix_auth.sql`](supabase/migrations/20260403_fix_auth.sql)
+   - [`supabase/migrations/20260404_bugfixes.sql`](supabase/migrations/20260404_bugfixes.sql) (рейтинг + имена staff)
+   - [`supabase/migrations/20260405_demo_seed_30.sql`](supabase/migrations/20260405_demo_seed_30.sql) (демо-данные: ~30 строк в таблицах)
    - При предупреждении: **Run without RLS** (RLS уже внутри скрипта)
    - Старые таблицы приложения будут удалены и созданы заново (`auth.users` сохраняются)
 
@@ -28,6 +31,11 @@ flutter run
 ```
 
 Регистрация с любого email (gmail, mail.ru и т.д.).
+
+Демо-аккаунты после `20260405_demo_seed_30.sql`:
+- `seed01@mck-ktits.demo` … `seed30@mck-ktits.demo`
+- пароль у всех: `DemoPass1!`
+- роли: студенты, волонтёры (`seed05`, `seed14`, `seed24`), админ (`seed10`)
 
 ### Авторизация (почта + телефон)
 

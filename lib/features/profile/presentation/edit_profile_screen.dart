@@ -109,7 +109,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             return const Center(child: Text(AppRu.profileNotFound));
           }
           if (!_inited) {
-            _fullName.text = profile.fullName;
+            _fullName.text = profile.displayName;
             _phone.text = profile.phone ?? '';
             _group.text = profile.groupName ?? '';
             _course = profile.course != null &&

@@ -132,10 +132,20 @@ class _RecycleScreenState extends ConsumerState<RecycleScreen> {
               await _ensureQr();
               invalidateRecycleData(ref);
             },
-            child: ListView(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final contentWidth =
+                    constraints.maxWidth > 720 ? 640.0 : constraints.maxWidth;
+                return ListView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
               children: [
+                Center(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: contentWidth),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
                 const SectionHeader(
                   title: AppRu.recycleHub,
                   subtitle: AppRu.recycleHubSubtitle,
@@ -297,14 +307,24 @@ class _RecycleScreenState extends ConsumerState<RecycleScreen> {
                         value: totals['hazardous'] ?? 0,
                       ),
                     ];
-                    return GridView.count(
-                      crossAxisCount: 2,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      mainAxisSpacing: 10,
-                      crossAxisSpacing: 10,
-                      childAspectRatio: 1.35,
-                      children: cards,
+                    return LayoutBuilder(
+                      builder: (context, constraints) {
+                        final w = constraints.maxWidth;
+                        final crossAxisCount = w >= 900
+                            ? 5
+                            : w >= 560
+                                ? 3
+                                : 2;
+                        return GridView.count(
+                          crossAxisCount: crossAxisCount,
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          mainAxisSpacing: 10,
+                          crossAxisSpacing: 10,
+                          childAspectRatio: crossAxisCount >= 5 ? 1.05 : 1.25,
+                          children: cards,
+                        );
+                      },
                     );
                   },
                 ),
@@ -346,11 +366,17 @@ class _RecycleScreenState extends ConsumerState<RecycleScreen> {
                 Wrap(
                   spacing: 6,
                   children: [
-                    for (final f in ['all', 'verified', 'pending', 'rejected'])
+                    for (final f in [
+                      ('all', AppRu.filterAll),
+                      ('verified', AppRu.verified),
+                      ('pending', AppRu.pending),
+                      ('rejected', AppRu.rejected),
+                    ])
                       ChoiceChip(
-                        label: Text(f == 'all' ? AppRu.filterAll : f),
-                        selected: _statusFilter == f,
-                        onSelected: (_) => setState(() => _statusFilter = f),
+                        label: Text(f.$2),
+                        selected: _statusFilter == f.$1,
+                        onSelected: (_) =>
+                            setState(() => _statusFilter = f.$1),
                       ),
                   ],
                 ),
@@ -405,7 +431,13 @@ class _RecycleScreenState extends ConsumerState<RecycleScreen> {
                     );
                   },
                 ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
+            );
+              },
             ),
           );
         },
@@ -428,21 +460,29 @@ class _FractionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return EcoCard(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: AppColors.primary),
+          Icon(icon, color: AppColors.primary, size: 22),
           const Spacer(),
           Text(
             value < 1 && value > 0
                 ? value.toStringAsFixed(1)
                 : value.toStringAsFixed(0),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: GoogleFonts.dmSans(
-              fontSize: 26,
+              fontSize: 22,
               fontWeight: FontWeight.w800,
             ),
           ),
-          Text(label, style: const TextStyle(color: AppColors.muted)),
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(color: AppColors.muted, fontSize: 13),
+          ),
         ],
       ),
     );
@@ -513,17 +553,25 @@ class _DepositTile extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: item.isVerified
                       ? AppColors.verifiedBg
-                      : AppColors.pendingBg,
+                      : item.status == 'rejected'
+                          ? const Color(0xFFFFEBEE)
+                          : AppColors.pendingBg,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  item.isVerified ? AppRu.verified : AppRu.pending,
+                  item.isVerified
+                      ? AppRu.verified
+                      : item.status == 'rejected'
+                          ? AppRu.rejected
+                          : AppRu.pending,
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
                     color: item.isVerified
                         ? AppColors.verifiedFg
-                        : AppColors.pendingFg,
+                        : item.status == 'rejected'
+                            ? AppColors.danger
+                            : AppColors.pendingFg,
                   ),
                 ),
               ),

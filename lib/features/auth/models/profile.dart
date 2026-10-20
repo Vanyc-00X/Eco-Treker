@@ -1,3 +1,5 @@
+import '../../../core/utils/display_name.dart';
+
 class Profile {
   const Profile({
     required this.id,
@@ -57,6 +59,9 @@ class Profile {
   bool get isVolunteer => role == 'volunteer';
   bool get isAdmin => role == 'admin';
   bool get isStaff => isVolunteer || isAdmin;
+
+  /// Имя для UI (с запасным вариантом для битых «????» / дефолтов).
+  String get displayName => displayNameFor(fullName: fullName, role: role);
 
   String get ecoLevelLabel {
     switch (ecoLevel) {

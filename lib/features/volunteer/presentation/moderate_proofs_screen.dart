@@ -98,7 +98,7 @@ class _ModerateProofsScreenState extends ConsumerState<ModerateProofsScreen> {
                                 );
                             setState(_reload);
                           },
-                          child: const Text(AppRu.cancel),
+                          child: const Text(AppRu.reject),
                         ),
                       ],
                     ),

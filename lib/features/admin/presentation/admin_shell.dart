@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../core/l10n/app_ru.dart';
+import '../../../core/utils/display_name.dart';
 import '../data/admin_repository.dart';
 
 final adminRepositoryProvider = Provider((_) => AdminRepository());
@@ -162,22 +163,36 @@ class _UsersTabState extends ConsumerState<_UsersTab> {
           itemCount: users.length,
           itemBuilder: (context, i) {
             final u = users[i];
+            final role = u['role'] as String? ?? 'student';
+            final name = displayNameFor(
+              fullName: u['full_name'] as String?,
+              role: role,
+            );
             return ListTile(
-              title: Text('${u['full_name']}'),
-              subtitle: Text('${u['email']} · ${u['role']}'),
+              title: Text(name),
+              subtitle: Text('${u['email']} · ${roleLabelRu(role)}'),
               trailing: PopupMenuButton<String>(
-                onSelected: (role) async {
+                onSelected: (nextRole) async {
                   await ref
                       .read(adminRepositoryProvider)
-                      .setUserRole(u['id'] as String, role);
+                      .setUserRole(u['id'] as String, nextRole);
                   setState(() {
                     _future = ref.read(adminRepositoryProvider).fetchUsers();
                   });
                 },
                 itemBuilder: (_) => const [
-                  PopupMenuItem(value: 'student', child: Text('student')),
-                  PopupMenuItem(value: 'volunteer', child: Text('volunteer')),
-                  PopupMenuItem(value: 'admin', child: Text('admin')),
+                  PopupMenuItem(
+                    value: 'student',
+                    child: Text(AppRu.roleStudent),
+                  ),
+                  PopupMenuItem(
+                    value: 'volunteer',
+                    child: Text(AppRu.roleVolunteer),
+                  ),
+                  PopupMenuItem(
+                    value: 'admin',
+                    child: Text(AppRu.roleAdmin),
+                  ),
                 ],
               ),
               onLongPress: () async {

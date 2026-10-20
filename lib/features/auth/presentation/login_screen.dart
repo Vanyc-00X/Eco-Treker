@@ -63,6 +63,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
   String get _phoneE164 {
     var raw = _phone.text.trim().replaceAll(RegExp(r'[^\d+]'), '');
+    if (raw.isEmpty) return '';
     if (raw.startsWith('8') && raw.length == 11) {
       raw = '+7${raw.substring(1)}';
     } else if (raw.startsWith('7') && raw.length == 11) {
@@ -71,6 +72,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       raw = '+7$raw';
     }
     return raw;
+  }
+
+  /// Российский номер: ровно 11 цифр, начинается с 7.
+  String? _phoneValidationError() {
+    final digits = _phoneE164.replaceAll(RegExp(r'\D'), '');
+    if (digits.length != 11 || !digits.startsWith('7')) {
+      return AppRu.invalidPhone;
+    }
+    return null;
   }
 
   Future<void> _submitEmail() async {
@@ -156,6 +166,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       return;
     }
     if (!_otpLimiter.canResend) return;
+    final phoneErr = _phoneValidationError();
+    if (phoneErr != null) {
+      setState(() => _error = phoneErr);
+      return;
+    }
     setState(() {
       _loading = true;
       _error = null;
@@ -181,7 +196,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         );
       }
     } catch (e) {
-      setState(() => _error = '$e\n${AppRu.mockPhoneHint}');
+      final raw = e.toString();
+      final isInvalidPhone = raw.contains('Invalid phone') ||
+          raw.contains(AppRu.invalidPhone);
+      setState(() {
+        _error = isInvalidPhone
+            ? AppRu.invalidPhone
+            : '$e\n${AppRu.mockPhoneHint}';
+      });
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -199,6 +221,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   Future<void> _verifyOtp() async {
     if (_otpLimiter.isLocked) {
       setState(() => _error = AppRu.otpLocked);
+      return;
+    }
+    final phoneErr = _phoneValidationError();
+    if (phoneErr != null) {
+      setState(() => _error = phoneErr);
       return;
     }
     setState(() {

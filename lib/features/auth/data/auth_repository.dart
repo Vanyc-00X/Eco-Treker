@@ -124,6 +124,11 @@ class AuthRepository {
   /// Запрос OTP. Локальный RPC (без Twilio); при наличии SMS-провайдера — SMS.
   /// Возвращает код, если его нужно показать на экране.
   Future<String?> sendPhoneOtp(String phoneE164) async {
+    final digits = phoneE164.replaceAll(RegExp(r'\D'), '');
+    if (digits.length < 11) {
+      throw StateError('Invalid phone');
+    }
+
     // Основной путь: OTP в БД (работает без SMS-провайдера).
     try {
       final code = await supabase.rpc(
@@ -133,6 +138,10 @@ class AuthRepository {
       _lastPhoneOtpLocal = true;
       return code is String ? code : '$code';
     } catch (rpcError) {
+      final msg = rpcError.toString();
+      if (msg.contains('Invalid phone')) {
+        throw StateError('Invalid phone');
+      }
       // Fallback: нативный Phone Auth Supabase (нужен Twilio и т.п.)
       try {
         await supabase.auth.signInWithOtp(phone: phoneE164);

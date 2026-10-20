@@ -118,7 +118,7 @@ class _ModerateClaimsScreenState extends ConsumerState<ModerateClaimsScreen> {
                         children: [
                           FilledButton(
                             onPressed: () => _act(s.id, true),
-                            child: const Text('OK'),
+                            child: const Text(AppRu.approve),
                           ),
                           const SizedBox(width: 8),
                           OutlinedButton(
@@ -126,7 +126,7 @@ class _ModerateClaimsScreenState extends ConsumerState<ModerateClaimsScreen> {
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppColors.danger,
                             ),
-                            child: const Text('Reject'),
+                            child: const Text(AppRu.reject),
                           ),
                         ],
                       ),

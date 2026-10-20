@@ -141,8 +141,8 @@ class DashboardScreen extends ConsumerWidget {
                               : null,
                           child: profile.avatarUrl == null
                               ? Text(
-                                  profile.fullName.isNotEmpty
-                                      ? profile.fullName[0].toUpperCase()
+                                  profile.displayName.isNotEmpty
+                                      ? profile.displayName[0].toUpperCase()
                                       : '?',
                                   style: const TextStyle(
                                     color: AppColors.primary,
@@ -160,7 +160,7 @@ class DashboardScreen extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            profile.fullName,
+                            profile.displayName,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.dmSans(
